@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'stats-js';
 import { TweenMax } from 'gsap/TweenMax';
+import { throws } from 'assert';
 
 class Scene {
 
@@ -15,6 +16,10 @@ class Scene {
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
 
     this.stats = null;
+
+    this.objects = {
+      plane: null
+    };
 
     this.initialized = false;
 
@@ -39,7 +44,7 @@ class Scene {
   addLight() {
     const pointLight = new THREE.PointLight( 0xffffff, 1, 500 );
     pointLight.position.set( 0, 20, 0 );
-    this.scene.add(pointLight );
+    this.scene.add(pointLight);
 
     pointLight.castShadow = true;
     pointLight.shadow.camera.near = 1;
@@ -62,10 +67,14 @@ class Scene {
     document.body.appendChild( this.renderer.domElement );
     document.body.style = 'overflow: hidden; margin: 0; background: #000;';
 
-    const planeGeometry = new THREE.PlaneGeometry(20, 20, 32);
-    const planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide});
+    const planeGeometry = new THREE.SphereGeometry(5, 32, 32);
+    const planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, wireframe: true});
     this.objects.plane = new THREE.Mesh(planeGeometry, planeMaterial);
     this.scene.add(this.objects.plane);
+
+    this.addGui();
+    this.addLight();
+    this.settingCamera();
 
     const animate = () => {
       requestAnimationFrame(animate);

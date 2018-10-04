@@ -11,7 +11,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'Physix',
+      title: 'Displacement',
       template: 'src/index.html'
     }),
     new CopyWebpackPlugin([
