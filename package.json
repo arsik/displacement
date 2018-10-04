@@ -1,0 +1,36 @@
+{
+  "name": "webgl",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "start:dev": "webpack-dev-server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "babel-loader": "^8.0.2",
+    "copy-webpack-plugin": "^4.5.2",
+    "eslint": "^5.5.0",
+    "eslint-config-google": "^0.10.0",
+    "eslint-loader": "^2.1.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.17.2",
+    "webpack-cli": "^3.1.0",
+    "webpack-dev-server": "^3.1.9"
+  },
+  "dependencies": {
+    "dat.gui": "^0.7.2",
+    "gsap": "^2.0.2",
+    "lodash": "^4.17.10",
+    "stats-js": "^1.0.0-alpha1",
+    "three": "^0.96.0",
+    "three-orbit-controls": "^82.1.0"
+  }
+}
