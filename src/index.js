@@ -2,8 +2,7 @@
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'stats-js';
-import { TweenMax } from 'gsap/TweenMax';
-import { throws } from 'assert';
+// import { TweenMax } from 'gsap/TweenMax';
 
 class Scene {
 
@@ -19,7 +18,7 @@ class Scene {
 
     this.settings = {
       roughness: 0.8,
-      metalness: 1,
+      metalness: 0,
       displacementScale: 0,
       displacementBias: 0,
       normalScale: 1.0,
@@ -42,7 +41,7 @@ class Scene {
     // gui.add(this.camera.position, 'z', -10, 10).listen();
 
     gui.add(this.settings, 'roughness').min(0).max(1).onChange((value) => {
-      this.objects.planeMaterial.metalness = value;
+      this.objects.planeMaterial.roughness = value;
     });
     gui.add(this.settings, 'metalness').min(0).max(1).onChange((value) => {
       this.objects.planeMaterial.metalness = value;
@@ -69,17 +68,17 @@ class Scene {
   }
 
   addLight() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 10);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     this.scene.add(ambientLight);
 
     const pointLight = new THREE.PointLight( 0xffffff, 1, 500 );
     pointLight.position.set( 0, 20, 0 );
     this.scene.add(pointLight);
 
-    pointLight.castShadow = true;
-    pointLight.shadow.camera.near = 1;
-    pointLight.shadow.camera.far = 60;
-    pointLight.shadow.bias = -0.005;
+    // pointLight.castShadow = true;
+    // pointLight.shadow.camera.near = 1;
+    // pointLight.shadow.camera.far = 60;
+    // pointLight.shadow.bias = -0.005;
   }
 
   settingCamera() {
