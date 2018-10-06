@@ -17,8 +17,17 @@ class Scene {
 
     this.stats = null;
 
+    this.settings = {
+      roughness: 0.8,
+      metalness: 1,
+      displacementScale: 0,
+      displacementBias: 0,
+      normalScale: 1.0,
+    };
+
     this.objects = {
-      plane: null
+      plane: null,
+      planeMaterial: null
     };
 
     this.initialized = false;
@@ -27,9 +36,27 @@ class Scene {
 
   addGui() {
     const gui = new dat.GUI();
-    gui.add(this.camera.position, 'x', -10, 10).listen();
-    gui.add(this.camera.position, 'y', -10, 10).listen();
-    gui.add(this.camera.position, 'z', -10, 10).listen();
+
+    // gui.add(this.camera.position, 'x', -10, 10).listen();
+    // gui.add(this.camera.position, 'y', -10, 10).listen();
+    // gui.add(this.camera.position, 'z', -10, 10).listen();
+
+    gui.add(this.settings, 'roughness').min(0).max(1).onChange((value) => {
+      this.objects.planeMaterial.metalness = value;
+    });
+    gui.add(this.settings, 'metalness').min(0).max(1).onChange((value) => {
+      this.objects.planeMaterial.metalness = value;
+    });
+    gui.add(this.settings, 'displacementBias').min(-5).max(5).onChange((value) => {
+      this.objects.planeMaterial.displacementBias = value;
+    });
+    gui.add(this.settings, 'displacementScale').min(-5).max(5).onChange((value) => {
+      this.objects.planeMaterial.displacementScale = value;
+    });
+    gui.add(this.settings, 'normalScale').min(-1).max(1).onChange((value) => {
+      this.objects.planeMaterial.normalScale.set(1, -1).multiplyScalar(value);
+    });
+
 
     this.stats = new Stats();
     this.stats.setMode(0);
@@ -42,6 +69,9 @@ class Scene {
   }
 
   addLight() {
+    const ambientLight = new THREE.AmbientLight(0xffffff, 10);
+    this.scene.add(ambientLight);
+
     const pointLight = new THREE.PointLight( 0xffffff, 1, 500 );
     pointLight.position.set( 0, 20, 0 );
     this.scene.add(pointLight);
@@ -67,9 +97,41 @@ class Scene {
     document.body.appendChild( this.renderer.domElement );
     document.body.style = 'overflow: hidden; margin: 0; background: #000;';
 
-    const planeGeometry = new THREE.SphereGeometry(5, 32, 32);
-    const planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, wireframe: true});
-    this.objects.plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    const planeGeometry = new THREE.SphereGeometry(5, 100, 100);
+    // const planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, wireframe: true});
+
+    const textureLoader = new THREE.TextureLoader();
+    const normalMap = textureLoader.load('assets/normal.png');
+    const displacementMap = textureLoader.load('assets/displacement.png');
+
+
+    const planeDisplacementMaterial = new THREE.MeshStandardMaterial({
+
+      color: 0x0099ff,
+      roughness: this.settings.roughness,
+      metalness: this.settings.metalness,
+
+      normalMap: normalMap,
+      // normalScale: this.settings.normalScale,
+
+      // aoMap: aoMap,
+      // aoMapIntensity: 1,
+
+      displacementMap: displacementMap,
+      displacementScale: this.settings.displacementScale,
+      displacementBias: this.settings.displacementBias,
+
+      // envMap: reflectionCube,
+      // envMapIntensity: settings.envMapIntensity,
+
+      wireframe: true,
+
+      side: THREE.DoubleSide
+
+    });
+
+    this.objects.planeMaterial = planeDisplacementMaterial;
+    this.objects.plane = new THREE.Mesh(planeGeometry, this.objects.planeMaterial);
     this.scene.add(this.objects.plane);
 
     this.addGui();
@@ -82,6 +144,7 @@ class Scene {
       this.stats.begin();
 
       if (this.initialized) {
+
         //
       }
 
