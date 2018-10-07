@@ -9,7 +9,7 @@ class Scene {
   constructor() {
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100 );
+    this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer({ alpha: false, antialias: true });
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
@@ -17,11 +17,8 @@ class Scene {
     this.stats = null;
 
     this.settings = {
-      roughness: 0.8,
-      metalness: 0,
-      displacementScale: 0,
-      displacementBias: 0,
-      normalScale: 1.0,
+      displacementX: 0,
+      displacementY: 0
     };
 
     this.objects = {
@@ -40,21 +37,15 @@ class Scene {
     // gui.add(this.camera.position, 'y', -10, 10).listen();
     // gui.add(this.camera.position, 'z', -10, 10).listen();
 
-    gui.add(this.settings, 'roughness').min(0).max(1).onChange((value) => {
-      this.objects.planeMaterial.roughness = value;
+    gui.add(this.settings, 'displacementX').min(-5).max(5).onChange((value) => {
+      this.objects.plane.material.uniforms.displacementX.value = value;
     });
-    gui.add(this.settings, 'metalness').min(0).max(1).onChange((value) => {
-      this.objects.planeMaterial.metalness = value;
+    gui.add(this.settings, 'displacementY').min(-5).max(5).onChange((value) => {
+      this.objects.plane.material.uniforms.displacementY.value = value;
     });
-    gui.add(this.settings, 'displacementBias').min(-5).max(5).onChange((value) => {
-      this.objects.planeMaterial.displacementBias = value;
-    });
-    gui.add(this.settings, 'displacementScale').min(-5).max(5).onChange((value) => {
-      this.objects.planeMaterial.displacementScale = value;
-    });
-    gui.add(this.settings, 'normalScale').min(-1).max(1).onChange((value) => {
-      this.objects.planeMaterial.normalScale.set(1, -1).multiplyScalar(value);
-    });
+    // gui.add(this.settings, 'normalScale').min(-1).max(1).onChange((value) => {
+    //   this.objects.planeMaterial.normalScale.set(1, -1).multiplyScalar(value);
+    // });
 
 
     this.stats = new Stats();
@@ -68,8 +59,8 @@ class Scene {
   }
 
   addLight() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-    this.scene.add(ambientLight);
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    // this.scene.add(ambientLight);
 
     const pointLight = new THREE.PointLight( 0xffffff, 1, 500 );
     pointLight.position.set( 0, 20, 0 );
@@ -96,59 +87,102 @@ class Scene {
     document.body.appendChild( this.renderer.domElement );
     document.body.style = 'overflow: hidden; margin: 0; background: #000;';
 
-    const planeGeometry = new THREE.SphereGeometry(5, 100, 100);
+    // const geometry = new THREE.BufferGeometry();
+    const geometry = new THREE.SphereBufferGeometry(10, 50, 50);
     // const planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, wireframe: true});
 
-    const textureLoader = new THREE.TextureLoader();
-    const normalMap = textureLoader.load('assets/normal.png');
-    const displacementMap = textureLoader.load('assets/displacement.png');
+    const shaderMaterial = new THREE.ShaderMaterial({
 
-
-    const planeDisplacementMaterial = new THREE.MeshStandardMaterial({
-
-      color: 0x0099ff,
-      roughness: this.settings.roughness,
-      metalness: this.settings.metalness,
-
-      normalMap: normalMap,
-      // normalScale: this.settings.normalScale,
-
-      // aoMap: aoMap,
-      // aoMapIntensity: 1,
-
-      displacementMap: displacementMap,
-      displacementScale: this.settings.displacementScale,
-      displacementBias: this.settings.displacementBias,
-
-      // envMap: reflectionCube,
-      // envMapIntensity: settings.envMapIntensity,
-
+      // uniforms: {
+      //   delta: { value: 0 }
+      // },
+      uniforms: THREE.UniformsUtils.merge([
+        THREE.UniformsLib['lights'],
+        {
+          diffuse: { type: 'c', value: new THREE.Color(0xff00ff) },
+          delta: { value: 0 },
+          displacementX: { type: 'f', value: 0 },
+          displacementY: { type: 'f', value: 0 },
+        }
+      ]),
       wireframe: true,
+      // lights: true,
 
-      side: THREE.DoubleSide
+      vertexShader: `
+        attribute float vertexDisplacement;
+        uniform float delta;
+        uniform float displacementX;
+        uniform float displacementY;
+        varying float vOpacity;
+        varying vec3 vUv;
+
+        void main() 
+        {
+            vUv = position;
+            vOpacity = vertexDisplacement;
+
+            vec3 p = position;
+
+            p.x += sin(vertexDisplacement) * displacementX;
+            p.y += cos(vertexDisplacement) * displacementY;
+
+            p.x = p.x - displacementX / 2.0;
+            p.y = p.y - displacementY;
+
+          vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
+          gl_Position = projectionMatrix * modelViewPosition;
+        }
+      `,
+
+      fragmentShader: `
+        uniform float delta;
+        varying float vOpacity;
+        varying vec3 vUv;
+
+        void main() {
+
+            float r = 1.0 + cos(vUv.x * delta);
+            float g = 0.5 + sin(delta) * 0.5;
+            float b = 0.0;
+            // vec3 rgb = vec3(r, g, b);
+            vec3 rgb = vec3(0.0, 0.5, 1.0);
+
+          gl_FragColor = vec4(rgb, vOpacity);
+        }
+      `
 
     });
 
-    this.objects.planeMaterial = planeDisplacementMaterial;
-    this.objects.plane = new THREE.Mesh(planeGeometry, this.objects.planeMaterial);
+    const vertexDisplacement = new Float32Array(geometry.attributes.position.count);
+    for (let i = 0; i < vertexDisplacement.length; i++) {
+      vertexDisplacement[i] = Math.sin(i);
+    }
+    geometry.addAttribute('vertexDisplacement', new THREE.BufferAttribute(vertexDisplacement, 1));
+
+    this.objects.planeMaterial = shaderMaterial;
+    this.objects.plane = new THREE.Mesh(geometry, this.objects.planeMaterial);
     this.scene.add(this.objects.plane);
 
     this.addGui();
     this.addLight();
     this.settingCamera();
 
+    let delta = 0;
+
     const animate = () => {
       requestAnimationFrame(animate);
-
       this.stats.begin();
+      // stats start
 
-      if (this.initialized) {
-
-        //
+      delta += 0.1;
+      this.objects.plane.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
+      for (let i = 0; i < vertexDisplacement.length; i++) {
+        vertexDisplacement[i] = 0.5 + Math.sin(i + delta) * 0.25;
       }
+      this.objects.plane.geometry.attributes.vertexDisplacement.needsUpdate = true;
 
+      // stats end
       this.stats.end();
-
       this.renderer.render( this.scene, this.camera );
     };
     animate();
