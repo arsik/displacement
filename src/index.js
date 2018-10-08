@@ -87,7 +87,7 @@ class Scene {
 
     const scapeSize = 100; // скейлим модель на -100 (x, y, z)
     const interpolatePoints = 10; // количество точек между двумя точками
-    const interpolateFrac = interpolatePoints * 0.01; // расстояние между точками (интерполируемыми)
+    const interpolateFrac = 0.1; // расстояние между точками (интерполируемыми)
 
     for (let i = 0; i < scapeArr.length - 1; i++) {
 
@@ -122,7 +122,7 @@ class Scene {
           displacementY: { type: 'f', value: this.settings.displacementY },
         }
       ]),
-      vertexShader: `
+      vertexShader: ` // анимация вертексов
         attribute float vertexDisplacement;
         uniform float delta;
         uniform float displacementX;
@@ -145,7 +145,7 @@ class Scene {
           gl_Position = projectionMatrix * modelViewPosition;
         }
       `,
-      fragmentShader: `
+      fragmentShader: ` // цвет вертексов (градиент)
         uniform vec3 color1;
         uniform vec3 color2;
         varying vec3 vUv;
