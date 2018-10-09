@@ -93,13 +93,13 @@ class Scene {
 
       for (let j = 1; j < interpolatePoints; j++) {
         const pos = [
-          this.interpolate(scapeArr[i][0], scapeArr[i + 1][0], j * interpolateFrac) / scapeSize,
-          this.interpolate(scapeArr[i][2], scapeArr[i + 1][2], j * interpolateFrac) / scapeSize,
-          this.interpolate(scapeArr[i][1], scapeArr[i + 1][1], j * interpolateFrac) / scapeSize,
+          this.interpolate(humanArr[i][0], humanArr[i + 1][0], j * interpolateFrac) / scapeSize,
+          this.interpolate(humanArr[i][2], humanArr[i + 1][2], j * interpolateFrac) / scapeSize,
+          this.interpolate(humanArr[i][1], humanArr[i + 1][1], j * interpolateFrac) / scapeSize,
         ];
         positions.push(...pos);
       }
-      // positions.push(scapeArr[i][0] / scapeSize, scapeArr[i][2] / scapeSize, scapeArr[i][1] / scapeSize);
+      // positions.push(humanArr[i][0] / scapeSize, humanArr[i][2] / scapeSize, humanArr[i][1] / scapeSize);
     }
 
     scapeGeometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
