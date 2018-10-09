@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'stats-js';
-import { scapeArr } from './scape.js';
+import { humanArr } from './human.js';
 // import { TweenMax } from 'gsap/TweenMax';
 
 class Scene {
@@ -28,8 +28,6 @@ class Scene {
     };
 
     this.initialized = false;
-
-    console.log(scapeArr);
 
   }
 
@@ -104,24 +102,24 @@ class Scene {
       return n.toFixed(5);
     }
 
-    for (let i = 0; i < scapeArr.length - 1; i++) {
+    for (let i = 0; i < humanArr.length - 1; i++) {
 
       for (let j = 1; j < interpolatePoints; j++) {
         const pos = [
-          interpolate(scapeArr[i][0], scapeArr[i + 1][0], j * interpolateFrac) / scapeSize,
-          interpolate(scapeArr[i][2], scapeArr[i + 1][2], j * interpolateFrac) / scapeSize,
-          interpolate(scapeArr[i][1], scapeArr[i + 1][1], j * interpolateFrac) / scapeSize,
+          interpolate(humanArr[i][0], humanArr[i + 1][0], j * interpolateFrac) / scapeSize,
+          interpolate(humanArr[i][2], humanArr[i + 1][2], j * interpolateFrac) / scapeSize,
+          interpolate(humanArr[i][1], humanArr[i + 1][1], j * interpolateFrac) / scapeSize,
         ];
         positions.push(...pos);
       }
-      // positions.push(scapeArr[i][0] / scapeSize, scapeArr[i][2] / scapeSize, scapeArr[i][1] / scapeSize);
+      // positions.push(humanArr[i][0] / scapeSize, humanArr[i][2] / scapeSize, humanArr[i][1] / scapeSize);
 
 
 
 
-      // colors.push( ( scapeArr[i][0] / scapeR ) + 0.5 );
-      // colors.push( ( scapeArr[i][2] / scapeR ) + 0.5 );
-      // colors.push( ( scapeArr[i][1] / scapeR ) + 0.5 );
+      // colors.push( ( humanArr[i][0] / scapeR ) + 0.5 );
+      // colors.push( ( humanArr[i][2] / scapeR ) + 0.5 );
+      // colors.push( ( humanArr[i][1] / scapeR ) + 0.5 );
     }
     scapeGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
     // scapeGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
@@ -177,7 +175,7 @@ class Scene {
         uniform float delta;
 
         void main() {
-          gl_FragColor = vec4(mix(color1, color2, cos(vUv * 0.10)), 1.0);
+          gl_FragColor = vec4(mix(color1, color2, cos(vUv.x * 0.10)), 1.0);
           if(percent > 0.0) {
             gl_FragColor.a = percent;
           }
@@ -209,7 +207,7 @@ class Scene {
       // stats start
 
       delta += 0.1;
-      percent += 1000.0;
+      percent += 50.0;
       this.objects.plane.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
       this.objects.plane.material.uniforms.percent.value = percent;
       for (let i = 0; i < vertexDisplacement.length; i++) {
