@@ -2,7 +2,6 @@
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'stats-js';
-import { humanArr } from './human.js';
 // import { TweenMax } from 'gsap/TweenMax';
 
 class Scene {
@@ -81,36 +80,58 @@ class Scene {
   }
 
   createGeometry() {
-    const scapeGeometry = new THREE.BufferGeometry();
 
-    const positions = [];
+    const promise = new Promise((resolve) => {
 
-    const scapeSize = 100; // скейлим модель на -100 (x, y, z)
-    const interpolatePoints = 10; // количество точек между двумя точками
-    const interpolateFrac = 0.1; // расстояние между точками (интерполируемыми)
+      const scapeGeometry = new THREE.BufferGeometry();
 
-    for (let i = 0; i < humanArr.length - 1; i++) {
+      const ColladaLoader = require('three-collada-loader');
+      const loadingManager = new THREE.LoadingManager();
 
-      for (let j = 1; j < interpolatePoints; j++) {
-        const pos = [
-          this.interpolate(humanArr[i][0], humanArr[i + 1][0], j * interpolateFrac) / scapeSize,
-          this.interpolate(humanArr[i][2], humanArr[i + 1][2], j * interpolateFrac) / scapeSize,
-          this.interpolate(humanArr[i][1], humanArr[i + 1][1], j * interpolateFrac) / scapeSize,
-        ];
-        positions.push(...pos);
-      }
-      // positions.push(humanArr[i][0] / scapeSize, humanArr[i][2] / scapeSize, humanArr[i][1] / scapeSize);
-    }
+      const loader = new ColladaLoader( loadingManager );
+      loader.load( '/assets/geo.dae', ( collada ) => {
 
-    scapeGeometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    scapeGeometry.computeBoundingSphere();
+        this.scene.add(collada.scene);
 
-    return scapeGeometry;
+        // console.log(collada.scene.children[0].children[0].geometry.vertices);
+
+        const positions = collada.scene.children[0].children[0].geometry.vertices;
+        const convertedPositions = [];
+        for (let i = 0; i < positions.length; i++) {
+          const pos = [
+            positions[i].x,
+            positions[i].y,
+            positions[i].z,
+          ];
+          convertedPositions.push(...pos);
+        }
+
+        scapeGeometry.addAttribute('position', new THREE.Float32BufferAttribute(convertedPositions, 3));
+        scapeGeometry.computeBoundingSphere();
+        const vertexDisplacement = new Float32Array(scapeGeometry.attributes.position.count);
+        for (let i = 0; i < vertexDisplacement.length; i++) {
+          vertexDisplacement[i] = Math.sin(i);
+        }
+        scapeGeometry.addAttribute('vertexDisplacement', new THREE.BufferAttribute(vertexDisplacement, 1));
+
+        resolve({
+          geometry: scapeGeometry,
+          vertexDisplacement: vertexDisplacement
+        });
+
+      });
+
+
+    });
+
+    return promise;
+
   }
 
   createMaterial() {
     const shaderMaterial = new THREE.ShaderMaterial({
       transparent: true,
+      // wireframe: true,
       uniforms: THREE.UniformsUtils.merge([
         THREE.UniformsLib['lights'],
         {
@@ -152,7 +173,7 @@ class Scene {
         uniform float delta;
 
         void main() {
-          gl_FragColor = vec4(mix(color1, color2, cos(vUv * 0.10)), 1.0);
+          gl_FragColor = vec4(mix(color1, color2, cos(vUv * 0.02)), 1.0);
         }
       `
     });
@@ -169,46 +190,50 @@ class Scene {
 
     this.settingScene();
 
-    const geometry = this.createGeometry();
+    const geometryPromise = this.createGeometry();
     const material = this.createMaterial();
 
-    const vertexDisplacement = new Float32Array(geometry.attributes.position.count);
-    for (let i = 0; i < vertexDisplacement.length; i++) {
-      vertexDisplacement[i] = Math.sin(i);
-    }
-    geometry.addAttribute('vertexDisplacement', new THREE.BufferAttribute(vertexDisplacement, 1));
+    geometryPromise.then(resolve => {
 
-    this.objects.scale = new THREE.Line(geometry, material);
-    this.scene.add(this.objects.scale);
+      const geometry = resolve.geometry;
+      const vertexDisplacement = resolve.vertexDisplacement;
 
-    this.addGui();
-    this.addLight();
-    this.settingCamera();
 
-    let delta = 0;
-    let percent = 1.0;
+      this.objects.scale = new THREE.Mesh(geometry, material);
+      this.scene.add(this.objects.scale);
 
-    const animate = () => {
-      requestAnimationFrame(animate);
-      this.stats.begin();
+      this.addGui();
+      this.addLight();
+      this.settingCamera();
 
-      delta += 0.1;
-      percent += 1000.0;
+      let delta = 0;
+      let percent = 1.0;
 
-      this.objects.scale.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
-      for (let i = 0; i < vertexDisplacement.length; i++) {
-        vertexDisplacement[i] = 0.5 + Math.sin(i + delta) * 0.25;
-      }
-      this.objects.scale.geometry.attributes.vertexDisplacement.needsUpdate = true; // анимация displacement
-      this.objects.scale.geometry.drawRange.count = percent; // анимация линии
+      const animate = () => {
+        requestAnimationFrame(animate);
+        this.stats.begin();
 
-      // stats end
-      this.stats.end();
-      this.renderer.render( this.scene, this.camera );
-    };
-    animate();
+        delta += 0.1;
+        percent += 100.0;
 
-    this.initialized = true;
+        this.objects.scale.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
+        for (let i = 0; i < vertexDisplacement.length; i++) {
+          vertexDisplacement[i] = 0.5 + Math.sin(i + delta) * 0.25;
+        }
+        this.objects.scale.geometry.attributes.vertexDisplacement.needsUpdate = true; // анимация displacement
+        this.objects.scale.geometry.drawRange.count = percent; // анимация линии
+
+        // stats end
+        this.stats.end();
+        this.renderer.render( this.scene, this.camera );
+      };
+      animate();
+
+      this.initialized = true;
+
+    });
+
+
 
   }
 

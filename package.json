@@ -31,6 +31,7 @@
     "lodash": "^4.17.10",
     "stats-js": "^1.0.0-alpha1",
     "three": "^0.96.0",
+    "three-collada-loader": "0.0.1",
     "three-orbit-controls": "^82.1.0"
   }
 }
