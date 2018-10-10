@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'stats-js';
 import { humanArr } from './human.js';
+import { tubeArr } from './tube.js';
 // import { TweenMax } from 'gsap/TweenMax';
 
 class Scene {
@@ -99,7 +100,7 @@ class Scene {
         ];
         positions.push(...pos);
       }
-      // positions.push(humanArr[i][0] / scapeSize, humanArr[i][2] / scapeSize, humanArr[i][1] / scapeSize);
+      // positions.push(humanArr[i][0] / scapeSize, tubeArr[i][2] / scapeSize, tubeArr[i][1] / scapeSize);
     }
 
     scapeGeometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -152,7 +153,7 @@ class Scene {
         uniform float delta;
 
         void main() {
-          gl_FragColor = vec4(mix(color1, color2, cos(vUv * 0.10)), 1.0);
+          gl_FragColor = vec4(mix(color1, color2, sin(vUv.y * vUv.x * 0.01)), 1.0);
         }
       `
     });
@@ -179,6 +180,7 @@ class Scene {
     geometry.addAttribute('vertexDisplacement', new THREE.BufferAttribute(vertexDisplacement, 1));
 
     this.objects.scale = new THREE.Line(geometry, material);
+    // this.objects.scale.rotation.x = -Math.PI * 3;
     this.scene.add(this.objects.scale);
 
     this.addGui();
@@ -193,7 +195,7 @@ class Scene {
       this.stats.begin();
 
       delta += 0.1;
-      percent += 1000.0;
+      percent += 100.0;
 
       this.objects.scale.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
       for (let i = 0; i < vertexDisplacement.length; i++) {
