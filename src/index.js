@@ -20,6 +20,7 @@ class Menu {
     ctx.beginPath();
     ctx.lineWidth = 1;
     ctx.strokeStyle = '#444';
+    // ctx.fillStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
     ctx.fillStyle = '#0099ff';
     ctx.rect(x, y, rectSize, rectSize);
     ctx.fill();
@@ -48,27 +49,33 @@ class Menu {
       height
     } = this.canvas;
 
-    // const rectCount = 12;
+    let rectSize = 50; // вычисляем НОД по алгоритму Эвклида (размер одного квадрата)
 
-    const floorHieght = Math.floor(height / 50) * 50; // вводим погрешность до разряда единиц
-    const floorWidth = Math.floor(width / 50) * 50; // вводим погрешность до разряда единиц
-    console.log(floorHieght);
-    console.log(floorWidth);
-    let rectSize = this.euclid(floorHieght * 100, floorWidth * 100) / 100; // вычисляем НОД по алгоритму Эвклида (размер одного квадрата)
-    // if (rectSize >= 100) {
-    //   rectSize = 30;
+    const widthRectCount = Math.floor(width / rectSize);
+
+    rectSize = width / widthRectCount;
+
+    const count = Math.ceil((height / rectSize)) * widthRectCount;
+
+    // const rectTotal = (height * width) / (rectSize * rectSize);
+
+    console.log({
+      width: width,
+      height: height,
+      rectSize: rectSize,
+      // rectTotal: rectTotal,
+      widthRectCount: widthRectCount,
+      count: count
+    });
+
+    // if (widthRectCount) {
+
     // }
-    const rectTotal = (floorHieght * floorWidth) / (rectSize * rectSize);
-
-    console.log(`itogo: ${rectTotal / rectSize}`);
-
-    console.log(rectSize);
-    console.log(rectTotal);
 
     let x = 0;
     let y = 0;
 
-    for (let i = 0; i < rectTotal; i++) {
+    for (let i = 0; i < count; i++) {
 
       this.drawRect(ctx, rectSize, x, y);
       x += rectSize;
