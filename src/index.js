@@ -3,8 +3,90 @@ import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'stats-js';
 import { humanArr } from './human.js';
-import { tubeArr } from './tube.js';
+// import { tubeArr } from './tube.js';
 // import { TweenMax } from 'gsap/TweenMax';
+
+
+class Menu {
+
+  constructor() {
+    this.canvas = document.getElementById('menu');
+    this.ctx = this.canvas.getContext('2d');
+  }
+  getContext() {
+    return this;
+  }
+  drawRect(ctx, rectSize, x, y) {
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#444';
+    ctx.fillStyle = '#0099ff';
+    ctx.rect(x, y, rectSize, rectSize);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  euclid(a, b) {
+    if (b === 0) {
+      return a;
+    } else {
+      return this.euclid(b, a % b);
+    }
+  }
+
+  init() {
+    const menu = document.querySelector('.menu');
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    this.canvas.width = menu.offsetWidth * devicePixelRatio;
+    this.canvas.height = menu.offsetHeight * devicePixelRatio;
+
+    const {
+      ctx
+    } = this;
+    const {
+      width,
+      height
+    } = this.canvas;
+
+    // const rectCount = 12;
+
+    const floorHieght = Math.floor(height / 50) * 50; // вводим погрешность до разряда единиц
+    const floorWidth = Math.floor(width / 50) * 50; // вводим погрешность до разряда единиц
+    console.log(floorHieght);
+    console.log(floorWidth);
+    let rectSize = this.euclid(floorHieght * 100, floorWidth * 100) / 100; // вычисляем НОД по алгоритму Эвклида (размер одного квадрата)
+    // if (rectSize >= 100) {
+    //   rectSize = 30;
+    // }
+    const rectTotal = (floorHieght * floorWidth) / (rectSize * rectSize);
+
+    console.log(`itogo: ${rectTotal / rectSize}`);
+
+    console.log(rectSize);
+    console.log(rectTotal);
+
+    let x = 0;
+    let y = 0;
+
+    for (let i = 0; i < rectTotal; i++) {
+
+      this.drawRect(ctx, rectSize, x, y);
+      x += rectSize;
+      if (x >= width) {
+        x = 0;
+        y += rectSize;
+      }
+
+    }
+
+    const animate = () => {
+      // this.ctx.drawImage(webgl.canvas, 0, 0);
+      requestAnimationFrame(animate);
+    };
+    animate();
+  }
+
+}
 
 class Scene {
 
@@ -16,6 +98,8 @@ class Scene {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
 
+    this.ctx = null;
+
     this.stats = null;
 
     this.settings = {
@@ -23,9 +107,7 @@ class Scene {
       displacementY: 0.0
     };
 
-    this.objects = {
-      scape: null
-    };
+    this.objects = {};
 
     this.initialized = false;
   }
@@ -78,10 +160,10 @@ class Scene {
     this.renderer.setSize(window.innerWidth * devicePixelRatio, window.innerHeight * devicePixelRatio);
     document.body.appendChild(this.renderer.domElement);
     this.renderer.domElement.style = 'width: 100%; height: 100%;';
-    document.body.style = 'overflow: hidden; margin: 0; background: #000;';
   }
 
   createGeometry() {
+
     const scapeGeometry = new THREE.BufferGeometry();
 
     const positions = [];
@@ -111,13 +193,14 @@ class Scene {
 
   createMaterial() {
     const shaderMaterial = new THREE.ShaderMaterial({
-      transparent: true,
+      transparent: false,
       uniforms: THREE.UniformsUtils.merge([
         THREE.UniformsLib['lights'],
         {
           percent: { value: 0 },
           color1: { type: 'c', value: new THREE.Color(0x0B0991) },
           color2: { type: 'c', value: new THREE.Color(0x00FFEA) },
+          lineWidth: { value: 3 },
           delta: { value: 0 },
           displacementX: { type: 'f', value: this.settings.displacementX },
           displacementY: { type: 'f', value: this.settings.displacementY },
@@ -132,15 +215,15 @@ class Scene {
 
         void main() 
         {
-            vUv = position;
+          vUv = position;
 
-            vec3 p = position;
+          vec3 p = position;
 
-            p.x += sin(vertexDisplacement) * displacementX;
-            p.y += cos(vertexDisplacement) * displacementY;
+          p.x += sin(vertexDisplacement) * displacementX / cos(delta * vertexDisplacement * 0.01);
+          p.y += cos(vertexDisplacement) * displacementY;
 
-            p.x = p.x - displacementX / 2.0;
-            p.y = p.y - displacementY;
+          p.x = p.x - displacementX / 2.0;
+          p.y = p.y - displacementY;
 
           vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
           gl_Position = projectionMatrix * modelViewPosition;
@@ -153,7 +236,7 @@ class Scene {
         uniform float delta;
 
         void main() {
-          gl_FragColor = vec4(mix(color1, color2, sin(vUv.y * vUv.x * 0.01)), 1.0);
+          gl_FragColor = vec4(mix(color1, color2, sin(vUv.x * vUv.y * 0.01)), 1.0);
         }
       `
     });
@@ -187,6 +270,10 @@ class Scene {
     this.addLight();
     this.settingCamera();
 
+    const menu = new Menu();
+    menu.init();
+    const menuContext = menu.getContext();
+
     let delta = 0;
     let percent = 1.0;
 
@@ -204,9 +291,16 @@ class Scene {
       this.objects.scale.geometry.attributes.vertexDisplacement.needsUpdate = true; // анимация displacement
       this.objects.scale.geometry.drawRange.count = percent; // анимация линии
 
+
+      // const webgl = this.renderer.domElement.getContext('webgl', {
+      //   preserveDrawingBuffer: true,
+      // });
+
       // stats end
       this.stats.end();
       this.renderer.render( this.scene, this.camera );
+
+      // this.ctx.drawImage(webgl.canvas, 0, 0);
     };
     animate();
 
