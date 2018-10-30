@@ -1,4 +1,4 @@
-export const scapeArr = [
+export const fileArr = [
   [60, 0, -75.405],
   [62.063, 10.04, -86.187],
   [62.448, 15.322, -91.042],

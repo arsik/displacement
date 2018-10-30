@@ -1,105 +1,19 @@
 // import _ from 'lodash';
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
+import GLTFLoader from 'three-gltf-loader';
 import Stats from 'stats-js';
-import { humanArr } from './human.js';
-// import { tubeArr } from './tube.js';
-// import { TweenMax } from 'gsap/TweenMax';
 
-
-class Menu {
-
-  constructor() {
-    this.canvas = document.getElementById('menu');
-    this.ctx = this.canvas.getContext('2d');
-  }
-  getContext() {
-    return this;
-  }
-  drawRect(ctx, rectSize, x, y) {
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = '#444';
-    // ctx.fillStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
-    ctx.fillStyle = '#0099ff';
-    ctx.rect(x, y, rectSize, rectSize);
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  euclid(a, b) {
-    if (b === 0) {
-      return a;
-    } else {
-      return this.euclid(b, a % b);
-    }
-  }
-
-  init() {
-    const menu = document.querySelector('.menu');
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    this.canvas.width = menu.offsetWidth * devicePixelRatio;
-    this.canvas.height = menu.offsetHeight * devicePixelRatio;
-
-    const {
-      ctx
-    } = this;
-    const {
-      width,
-      height
-    } = this.canvas;
-
-    let rectSize = 50; // вычисляем НОД по алгоритму Эвклида (размер одного квадрата)
-
-    const widthRectCount = Math.floor(width / rectSize);
-
-    rectSize = width / widthRectCount;
-
-    const count = Math.ceil((height / rectSize)) * widthRectCount;
-
-    // const rectTotal = (height * width) / (rectSize * rectSize);
-
-    console.log({
-      width: width,
-      height: height,
-      rectSize: rectSize,
-      // rectTotal: rectTotal,
-      widthRectCount: widthRectCount,
-      count: count
-    });
-
-    // if (widthRectCount) {
-
-    // }
-
-    let x = 0;
-    let y = 0;
-
-    for (let i = 0; i < count; i++) {
-
-      this.drawRect(ctx, rectSize, x, y);
-      x += rectSize;
-      if (x >= width) {
-        x = 0;
-        y += rectSize;
-      }
-
-    }
-
-    const animate = () => {
-      // this.ctx.drawImage(webgl.canvas, 0, 0);
-      requestAnimationFrame(animate);
-    };
-    animate();
-  }
-
-}
+import { Menu } from './components/menu/menu';
+import { fileArr } from './models/main.js';
 
 class Scene {
 
   constructor() {
 
     this.scene = new THREE.Scene();
+    this.clock = new THREE.Clock();
+    this.mixer = null;
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer({ alpha: false, antialias: true });
     this.renderer.shadowMap.enabled = true;
@@ -152,6 +66,47 @@ class Scene {
     // this.scene.add(pointLight);
   }
 
+  colladaCamera() {
+
+    const loader = new GLTFLoader();
+
+    loader.load(
+      // resource URL
+      'assets/cube1-5.gltf',
+      // called when the resource is loaded
+      ( gltf ) => {
+
+        console.log(gltf);
+
+        const model = gltf.scene;
+
+        this.scene.add( model );
+
+        this.mixer = new THREE.AnimationMixer(model);
+        this.mixer.clipAction(gltf.animations[0]).play();
+
+        // gltf.animations; // Array<THREE.AnimationClip>
+        // gltf.scene; // THREE.Scene
+        // gltf.scenes; // Array<THREE.Scene>
+        // gltf.cameras; // Array<THREE.Camera>
+        // gltf.asset; // Object
+
+      },
+      // called while loading is progressing
+      function ( xhr ) {
+
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+      },
+      // called when loading has errors
+      function ( error ) {
+
+        console.log( 'An error happened' );
+
+      }
+    );
+  }
+
   settingCamera() {
     const OrbitControls = require('three-orbit-controls')(THREE);
     const controls = new OrbitControls( this.camera );
@@ -176,20 +131,20 @@ class Scene {
     const positions = [];
 
     const scapeSize = 100; // скейлим модель на -100 (x, y, z)
-    const interpolatePoints = 10; // количество точек между двумя точками
-    const interpolateFrac = 0.1; // расстояние между точками (интерполируемыми)
+    // const interpolatePoints = 10; // количество точек между двумя точками
+    // const interpolateFrac = 0.1; // расстояние между точками (интерполируемыми)
 
-    for (let i = 0; i < humanArr.length - 1; i++) {
+    for (let i = 0; i < fileArr.length - 1; i++) {
 
-      for (let j = 1; j < interpolatePoints; j++) {
-        const pos = [
-          this.interpolate(humanArr[i][0], humanArr[i + 1][0], j * interpolateFrac) / scapeSize,
-          this.interpolate(humanArr[i][2], humanArr[i + 1][2], j * interpolateFrac) / scapeSize,
-          this.interpolate(humanArr[i][1], humanArr[i + 1][1], j * interpolateFrac) / scapeSize,
-        ];
-        positions.push(...pos);
-      }
-      // positions.push(humanArr[i][0] / scapeSize, tubeArr[i][2] / scapeSize, tubeArr[i][1] / scapeSize);
+      // for (let j = 1; j < interpolatePoints; j++) {
+      //   const pos = [
+      //     this.interpolate(fileArr[i][0], fileArr[i + 1][0], j * interpolateFrac) / scapeSize,
+      //     this.interpolate(fileArr[i][2], fileArr[i + 1][2], j * interpolateFrac) / scapeSize,
+      //     this.interpolate(fileArr[i][1], fileArr[i + 1][1], j * interpolateFrac) / scapeSize,
+      //   ];
+      //   positions.push(...pos);
+      // }
+      positions.push(fileArr[i][0] / scapeSize, fileArr[i][2] / scapeSize, fileArr[i][1] / scapeSize);
     }
 
     scapeGeometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -243,7 +198,7 @@ class Scene {
         uniform float delta;
 
         void main() {
-          gl_FragColor = vec4(mix(color1, color2, sin(vUv.x * vUv.y * 0.01)), 1.0);
+          gl_FragColor = vec4(mix(color1, color2, sin(vUv.x * vUv.z * vUv.y * 0.00001)), 1.0);
         }
       `
     });
@@ -276,20 +231,22 @@ class Scene {
     this.addGui();
     this.addLight();
     this.settingCamera();
+    this.colladaCamera();
 
     const menu = new Menu();
     menu.init();
-    const menuContext = menu.getContext();
+    // const menuContext = menu.getContext();
 
     let delta = 0;
     let percent = 1.0;
+    // const clock = new THREE.Clock();
 
     const animate = () => {
       requestAnimationFrame(animate);
       this.stats.begin();
 
       delta += 0.1;
-      percent += 100.0;
+      percent += 50.0;
 
       this.objects.scale.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
       for (let i = 0; i < vertexDisplacement.length; i++) {
@@ -298,16 +255,31 @@ class Scene {
       this.objects.scale.geometry.attributes.vertexDisplacement.needsUpdate = true; // анимация displacement
       this.objects.scale.geometry.drawRange.count = percent; // анимация линии
 
+      const webgl = this.renderer.domElement.getContext('webgl', {
+        preserveDrawingBuffer: true,
+      });
 
-      // const webgl = this.renderer.domElement.getContext('webgl', {
-      //   preserveDrawingBuffer: true,
-      // });
+      const animDelta = this.clock.getDelta();
+      if (this.mixer != null) {
+        this.mixer.update(animDelta);
+      }
 
       // stats end
       this.stats.end();
       this.renderer.render( this.scene, this.camera );
 
-      // this.ctx.drawImage(webgl.canvas, 0, 0);
+      // скрытый канвас для получения информации о цвете пикселя
+
+      const dynamicCanvas = document.createElement('canvas');
+      dynamicCanvas.width = menu.canvas.width;
+      dynamicCanvas.height = menu.canvas.height;
+      const dynamicCanvasCtx = dynamicCanvas.getContext('2d');
+      dynamicCanvasCtx.drawImage(webgl.canvas, 0, 0);
+      menu.updatePixelsInfo(dynamicCanvasCtx);
+
+      // console.log(dynamicCanvasCtx);
+
+
     };
     animate();
 
