@@ -72,18 +72,19 @@ class Scene {
 
     loader.load(
       // resource URL
-      'assets/cube1-5.gltf',
+      'assets/cam.gltf',
       // called when the resource is loaded
       ( gltf ) => {
 
         console.log(gltf);
 
-        const model = gltf.scene;
+        // const model = gltf.scene;
+        // this.scene.add( model );
 
-        this.scene.add( model );
+        // this.camera.up.set( 0, 0, 1 );
 
-        this.mixer = new THREE.AnimationMixer(model);
-        this.mixer.clipAction(gltf.animations[0]).play();
+        // this.mixer = new THREE.AnimationMixer(this.camera);
+        // this.mixer.clipAction(gltf.animations[0]).play();
 
         // gltf.animations; // Array<THREE.AnimationClip>
         // gltf.scene; // THREE.Scene
@@ -211,6 +212,42 @@ class Scene {
     return n.toFixed(5);
   }
 
+  createImageShader(menu) {
+    let positions = new Float32Array(menu.canvas.width * menu.canvas.height * 3);
+    let index = 0;
+    for (let i = 0; i < menu.canvas.width; i++) {
+      for (let j = 0; j < menu.canvas.height; j++) {
+        positions[index * 3] = j;
+        positions[index * 3 + 1] = i;
+        positions[index * 3 + 2] = 0;
+        index++;
+      }
+    }
+
+    let geometry = new THREE.BufferGeometry();
+
+    geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    // geometry.addAttribute('source', new THREE.BufferAttribute(obj[0].buffer,2));
+    // geometry.addAttribute('target', new THREE.BufferAttribute(obj[1].buffer,2));
+
+    // let material = new THREE.RawShaderMaterial( {
+    //   uniforms: {
+    //     sourceTex: { type: 't', value: obj[0].texture },
+    //     targetTex: { type: 't', value: obj[1].texture },
+    //     blend: { type: 'f', value: 0 },
+    //     size: { type: 'f', value: 2.1 },
+    //     dimensions: { type: 'v2', value: new THREE.Vector2(w,h) }
+    //   },
+    //   vertexShader: document.getElementById( 'particle-vs' ).textContent,
+    //   fragmentShader: document.getElementById( 'particle-fs' ).textContent,
+    // });
+
+    // let points = new THREE.Points(geometry, material);
+    // this.scene.add(points);
+
+  }
+
   init() {
 
     this.settingScene();
@@ -275,10 +312,12 @@ class Scene {
       dynamicCanvas.height = menu.canvas.height;
       const dynamicCanvasCtx = dynamicCanvas.getContext('2d');
       dynamicCanvasCtx.drawImage(webgl.canvas, 0, 0);
+
       menu.updatePixelsInfo(dynamicCanvasCtx);
 
-      // console.log(dynamicCanvasCtx);
+      // const data = dynamicCanvasCtx.getImageData(0, 0, menu.canvas.width, menu.canvas.height).data;
 
+      // console.log(dynamicCanvas.toDataURL());
 
     };
     animate();

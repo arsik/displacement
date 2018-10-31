@@ -11,28 +11,24 @@ export class Menu {
 
   drawRect(rect) {
     this.ctx.beginPath();
-    // this.ctx.lineWidth = 0;
-    // this.ctx.strokeStyle = rect.color;
-    // this.ctx.fillStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
     this.ctx.fillStyle = rect.color;
     this.ctx.rect(rect.position[0], rect.position[1], rect.size, rect.size);
     this.ctx.fill();
-    // this.ctx.stroke();
   }
 
   updatePixelsInfo(ctx) {
-    // const data = ctx.getImageData(15, 15, 1, 1).data;
 
-    // console.log(`R: ${data[0]} G: ${data[1]} B: ${data[2]}`);
-    // console.log(this.rectangles);
+    const data = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data;
+    const dataLength = data.length / 4; // массив из пикселей в виде rgba (1px = r,g,b,a)
+    const step = Math.floor(dataLength / this.rectangles.length);
 
-    this.rectangles.forEach((item) => {
-      const data = ctx.getImageData(item.position[0], item.position[1], item.size, item.size).data;
-      item.color = `rgba(${data[0]}, ${data[1]}, ${data[2]})`;
-    });
-
-    // console.log(this.rectangles.length);
-    // this.cubeColor = `rgb(${data[0]},${data[1]},${data[2]})`;
+    for (let i = 0, i2 = 0; i < dataLength && i2 < this.rectangles.length; i += step, i2++) {
+      let pixel = i * 4;
+      let red = data[pixel];
+      let green = data[pixel + 1];
+      let blue = data[pixel + 2];
+      this.rectangles[i2].color = `rgba(${red}, ${green}, ${blue}, 255)`;
+    }
 
   }
 
