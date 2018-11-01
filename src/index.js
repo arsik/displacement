@@ -36,9 +36,9 @@ class Scene {
   addGui() {
     const gui = new dat.GUI();
 
-    gui.add(this.camera.position, 'x', -10, 10).listen();
-    gui.add(this.camera.position, 'y', -10, 10).listen();
-    gui.add(this.camera.position, 'z', -10, 10).listen();
+    // gui.add(this.camera.position, 'x', -10, 10).listen();
+    // gui.add(this.camera.position, 'y', -10, 10).listen();
+    // gui.add(this.camera.position, 'z', -10, 10).listen();
 
     gui.add(this.settings, 'displacementX').min(-100).max(100).onChange((value) => {
       this.objects.scale.material.uniforms.displacementX.value = value;
@@ -51,19 +51,26 @@ class Scene {
     this.stats.setMode(0);
 
     this.stats.domElement.style.position = 'absolute';
-    this.stats.domElement.style.left = '0px';
-    this.stats.domElement.style.top = '0px';
+    this.stats.domElement.style.bottom = '0px';
+    this.stats.domElement.style.right = '0px';
+    this.stats.domElement.style.zIndex = '100';
 
     document.body.appendChild(this.stats.domElement);
   }
 
-  addLight() {
-    // const ambientLight = new THREE.AmbientLight(0x404040);
-    // this.scene.add(ambientLight);
+  addDeviceMotion() {
 
-    // const pointLight = new THREE.PointLight( 0xffffff, 1, 500 );
-    // pointLight.position.set( 0, 20, 0 );
-    // this.scene.add(pointLight);
+    // this.accel = 0;
+
+    // window.addEventListener('devicemotion', (event) => {
+
+    //   const accel = Math.round(event.rotationRate.gamma);
+
+    //   this.accel += accel;
+
+    //   document.getElementById('logo').innerHTML = this.accel;
+    //   this.camera.rotation.y = this.accel;
+    // });
   }
 
   colladaCamera() {
@@ -102,7 +109,7 @@ class Scene {
       // called when loading has errors
       function ( error ) {
 
-        console.log( 'An error happened' );
+        console.log( `An error happened: ${error}` );
 
       }
     );
@@ -212,42 +219,6 @@ class Scene {
     return n.toFixed(5);
   }
 
-  createImageShader(menu) {
-    let positions = new Float32Array(menu.canvas.width * menu.canvas.height * 3);
-    let index = 0;
-    for (let i = 0; i < menu.canvas.width; i++) {
-      for (let j = 0; j < menu.canvas.height; j++) {
-        positions[index * 3] = j;
-        positions[index * 3 + 1] = i;
-        positions[index * 3 + 2] = 0;
-        index++;
-      }
-    }
-
-    let geometry = new THREE.BufferGeometry();
-
-    geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-    // geometry.addAttribute('source', new THREE.BufferAttribute(obj[0].buffer,2));
-    // geometry.addAttribute('target', new THREE.BufferAttribute(obj[1].buffer,2));
-
-    // let material = new THREE.RawShaderMaterial( {
-    //   uniforms: {
-    //     sourceTex: { type: 't', value: obj[0].texture },
-    //     targetTex: { type: 't', value: obj[1].texture },
-    //     blend: { type: 'f', value: 0 },
-    //     size: { type: 'f', value: 2.1 },
-    //     dimensions: { type: 'v2', value: new THREE.Vector2(w,h) }
-    //   },
-    //   vertexShader: document.getElementById( 'particle-vs' ).textContent,
-    //   fragmentShader: document.getElementById( 'particle-fs' ).textContent,
-    // });
-
-    // let points = new THREE.Points(geometry, material);
-    // this.scene.add(points);
-
-  }
-
   init() {
 
     this.settingScene();
@@ -266,9 +237,10 @@ class Scene {
     this.scene.add(this.objects.scale);
 
     this.addGui();
-    this.addLight();
     this.settingCamera();
     this.colladaCamera();
+
+    this.addDeviceMotion();
 
     const menu = new Menu();
     menu.init();

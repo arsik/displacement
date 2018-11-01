@@ -10,6 +10,7 @@
         height: 100%;
       }
       body {
+        font-family: 'Arial', sans-serif;
         margin: 0;
         padding: 0;
         background: #000;
@@ -23,8 +24,20 @@
         position: fixed;
         overflow: hidden;
         z-index: 1;
-        opacity: 0.85;
+        /* opacity: 0.85; */
+        border-right: 1px solid rgba(255, 255, 255, .2);
         /* display: none; */
+      }
+
+      .menu__head {
+        padding: 40px 60px;
+        position: absolute;
+        left: 0;
+        right: 0;
+      }
+      .menu__head h1 {
+        color: white;
+        font-size: 42px;
       }
 
       #menu {
@@ -36,6 +49,9 @@
   </head>
   <body>
     <div class="menu">
+      <div class="menu__head">
+        <h1 id="logo">Data Fork</h1>
+      </div>
       <canvas id="menu"></canvas>
     </div>
   </body>

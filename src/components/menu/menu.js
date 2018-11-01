@@ -22,12 +22,9 @@ export class Menu {
     const dataLength = data.length / 4; // массив из пикселей в виде rgba (1px = r,g,b,a)
     const step = Math.floor(dataLength / this.rectangles.length);
 
-    for (let i = 0, i2 = 0; i < dataLength && i2 < this.rectangles.length; i += step, i2++) {
+    for (let i = 0, j = 0; i < dataLength && j < this.rectangles.length; i += step, j++) {
       let pixel = i * 4;
-      let red = data[pixel];
-      let green = data[pixel + 1];
-      let blue = data[pixel + 2];
-      this.rectangles[i2].color = `rgba(${red}, ${green}, ${blue}, 255)`;
+      this.rectangles[j].color = `rgba(${data[pixel]}, ${data[pixel + 1]}, ${data[pixel + 2]}, 255)`;
     }
 
   }
@@ -44,7 +41,7 @@ export class Menu {
       rectangles.push({
         size: rectSize,
         position: [x, y],
-        color: 'rgba(255,255,255'
+        color: 'rgba(255,255,255)'
       });
 
       x += rectSize;
@@ -78,6 +75,10 @@ export class Menu {
 
     const animate = () => {
       requestAnimationFrame(animate);
+
+      // setTimeout(() => {
+      //   animate();
+      // }, 250);
 
       this.ctx.clearRect(0, 0, 0, 0);
 
