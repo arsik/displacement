@@ -24,7 +24,7 @@ export class Menu {
 
     for (let i = 0, j = 0; i < dataLength && j < this.rectangles.length; i += step, j++) {
       let pixel = i * 4;
-      this.rectangles[j].color = `rgba(${data[pixel]}, ${data[pixel + 1]}, ${data[pixel + 2]}, 255)`;
+      this.rectangles[j].color = `rgba(${data[pixel]}, ${data[pixel + 1]}, ${data[pixel + 2]}, ${this.rectangles[j].alpha})`;
     }
 
   }
@@ -41,7 +41,8 @@ export class Menu {
       rectangles.push({
         size: rectSize,
         position: [x, y],
-        color: 'rgba(255,255,255)'
+        color: 'rgba(255, 255, 255, 1)',
+        alpha: 1,
       });
 
       x += rectSize;
