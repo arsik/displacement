@@ -19,8 +19,6 @@ class Scene {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
 
-    this.ctx = null;
-
     this.stats = null;
 
     this.settings = {
@@ -28,12 +26,12 @@ class Scene {
       displacementY: 0.0
     };
 
-    this.objects = {};
+    this.objects = {}; // тут будем хранить наш созданный меш (геометрия + материал)
 
     this.initialized = false;
   }
 
-  addGui() {
+  addGui() { // настройки GUI
     const gui = new dat.GUI();
 
     // gui.add(this.camera.position, 'x', -10, 10).listen();
@@ -41,10 +39,10 @@ class Scene {
     // gui.add(this.camera.position, 'z', -10, 10).listen();
 
     gui.add(this.settings, 'displacementX').min(-100).max(100).onChange((value) => {
-      this.objects.scale.material.uniforms.displacementX.value = value;
+      this.objects.mainObject.material.uniforms.displacementX.value = value;
     });
     gui.add(this.settings, 'displacementY').min(-100).max(100).onChange((value) => {
-      this.objects.scale.material.uniforms.displacementY.value = value;
+      this.objects.mainObject.material.uniforms.displacementY.value = value;
     });
 
     this.stats = new Stats();
@@ -58,7 +56,7 @@ class Scene {
     document.body.appendChild(this.stats.domElement);
   }
 
-  addDeviceMotion() {
+  addDeviceMotion() { // гироскоп для мобилки
 
     // this.accel = 0;
 
@@ -73,7 +71,7 @@ class Scene {
     // });
   }
 
-  colladaCamera() {
+  colladaCamera() { // анимация камеры выгруженная из C4D collada -> gltf converter (http://52.4.31.236/convertmodel.html) ссылка на конвертер
 
     const loader = new GLTFLoader();
 
@@ -100,29 +98,23 @@ class Scene {
         // gltf.asset; // Object
 
       },
-      // called while loading is progressing
       function ( xhr ) {
-
         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
       },
-      // called when loading has errors
       function ( error ) {
-
         console.log( `An error happened: ${error}` );
-
       }
     );
   }
 
-  settingCamera() {
+  settingCamera() { // контролы для камеры (только при разработке)
     const OrbitControls = require('three-orbit-controls')(THREE);
     const controls = new OrbitControls( this.camera );
     this.camera.position.set(0, 13, 80);
     controls.update();
   }
 
-  settingScene() {
+  settingScene() { // настройки сцены
     const devicePixelRatio = window.devicePixelRatio || 1; // for retina
 
     this.renderer.shadowMap.enabled = true;
@@ -132,17 +124,15 @@ class Scene {
     this.renderer.domElement.style = 'width: 100%; height: 100%;';
   }
 
-  createGeometry() {
+  createGeometry() { // создаем геометрию на основе вертексов полученных из C4D
 
     const scapeGeometry = new THREE.BufferGeometry();
-
     const positions = [];
-
     const scapeSize = 100; // скейлим модель на -100 (x, y, z)
     // const interpolatePoints = 10; // количество точек между двумя точками
     // const interpolateFrac = 0.1; // расстояние между точками (интерполируемыми)
 
-    for (let i = 0; i < fileArr.length - 1; i++) {
+    for (let i = 0; i < fileArr.length - 1; i++) { // закомментил интерполяцию
 
       // for (let j = 1; j < interpolatePoints; j++) {
       //   const pos = [
@@ -154,14 +144,13 @@ class Scene {
       // }
       positions.push(fileArr[i][0] / scapeSize, fileArr[i][2] / scapeSize, fileArr[i][1] / scapeSize);
     }
-
     scapeGeometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     scapeGeometry.computeBoundingSphere();
 
     return scapeGeometry;
   }
 
-  createMaterial() {
+  createMaterial() { // создаем материал для геометрии (в ней же описываем шейдер)
     const shaderMaterial = new THREE.ShaderMaterial({
       transparent: false,
       uniforms: THREE.UniformsUtils.merge([
@@ -214,7 +203,7 @@ class Scene {
     return shaderMaterial;
   }
 
-  interpolate(a, b, frac) {
+  interpolate(a, b, frac) { // интерполяция меж двумя точками (юзаем циклом, frac - деление)
     const n = a + (b - a) * frac;
     return n.toFixed(5);
   }
@@ -232,23 +221,19 @@ class Scene {
     }
     geometry.addAttribute('vertexDisplacement', new THREE.BufferAttribute(vertexDisplacement, 1));
 
-    this.objects.scale = new THREE.Line(geometry, material);
-    // this.objects.scale.rotation.x = -Math.PI * 3;
-    this.scene.add(this.objects.scale);
+    this.objects.mainObject = new THREE.Line(geometry, material);
+    this.scene.add(this.objects.mainObject); // создали меш и поместили на сцену
 
-    this.addGui();
-    this.settingCamera();
-    this.colladaCamera();
-
-    this.addDeviceMotion();
+    this.addGui(); // добавляем Gui
+    this.settingCamera(); // настраиваем камеру (только для dev)
+    this.colladaCamera(); // анимируем камеру
+    this.addDeviceMotion(); // добавляем гироском для мобилки
 
     const menu = new Menu();
-    menu.init();
-    // const menuContext = menu.getContext();
+    menu.init(); // инициализируем меню (кубики на канвасе)
 
     let delta = 0;
     let percent = 1.0;
-    // const clock = new THREE.Clock();
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -257,12 +242,12 @@ class Scene {
       delta += 0.1;
       percent += 50.0;
 
-      this.objects.scale.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
+      this.objects.mainObject.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
       for (let i = 0; i < vertexDisplacement.length; i++) {
         vertexDisplacement[i] = 0.5 + Math.sin(i + delta) * 0.25;
       }
-      this.objects.scale.geometry.attributes.vertexDisplacement.needsUpdate = true; // анимация displacement
-      this.objects.scale.geometry.drawRange.count = percent; // анимация линии
+      this.objects.mainObject.geometry.attributes.vertexDisplacement.needsUpdate = true; // анимация displacement
+      this.objects.mainObject.geometry.drawRange.count = percent; // анимация линии
 
       const webgl = this.renderer.domElement.getContext('webgl', {
         preserveDrawingBuffer: true,
@@ -278,18 +263,14 @@ class Scene {
       this.renderer.render( this.scene, this.camera );
 
       // скрытый канвас для получения информации о цвете пикселя
-
       const dynamicCanvas = document.createElement('canvas');
       dynamicCanvas.width = menu.canvas.width;
       dynamicCanvas.height = menu.canvas.height;
       const dynamicCanvasCtx = dynamicCanvas.getContext('2d');
       dynamicCanvasCtx.drawImage(webgl.canvas, 0, 0);
 
+      // передаем скрытый канвас в наше меню
       menu.updatePixelsInfo(dynamicCanvasCtx);
-
-      // const data = dynamicCanvasCtx.getImageData(0, 0, menu.canvas.width, menu.canvas.height).data;
-
-      // console.log(dynamicCanvas.toDataURL());
 
     };
     animate();

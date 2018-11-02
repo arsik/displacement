@@ -5,18 +5,14 @@ export class Menu {
     this.ctx = this.canvas.getContext('2d');
   }
 
-  getContext() {
-    return this;
-  }
-
-  drawRect(rect) {
+  drawRect(rect) { // рисуем куб
     this.ctx.beginPath();
     this.ctx.fillStyle = rect.color;
     this.ctx.rect(rect.position[0], rect.position[1], rect.size, rect.size);
     this.ctx.fill();
   }
 
-  updatePixelsInfo(ctx) {
+  updatePixelsInfo(ctx) { // обновление цвета ректов на основе полученного изображения из webgl
 
     const data = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data;
     const dataLength = data.length / 4; // массив из пикселей в виде rgba (1px = r,g,b,a)
@@ -29,7 +25,7 @@ export class Menu {
 
   }
 
-  generateRectangles(count, rectSize) {
+  generateRectangles(count, rectSize) { // создаем массив ректов
 
     const rectangles = [];
 
@@ -66,22 +62,19 @@ export class Menu {
       height
     } = this.canvas;
 
-    // генерим квадраты в меню
-    let rectSize = 50;
+    // генерим ректы в зависсмости от размеров меню
+    let rectSize = 45;
     const widthRectCount = Math.floor(width / rectSize);
     rectSize = width / widthRectCount;
     const count = Math.ceil((height / rectSize)) * widthRectCount;
-
     this.rectangles = this.generateRectangles(count, rectSize);
 
+
+    // рисуем
     const animate = () => {
       requestAnimationFrame(animate);
 
-      // setTimeout(() => {
-      //   animate();
-      // }, 250);
-
-      this.ctx.clearRect(0, 0, 0, 0);
+      this.ctx.clearRect(0, 0, 0, 0); // чистим сцену
 
       this.rectangles.forEach((item) => {
         this.drawRect(item);
