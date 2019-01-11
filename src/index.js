@@ -75,27 +75,16 @@ class Scene {
 
     const loader = new GLTFLoader();
 
-    loader.load(
-      // resource URL
-      'assets/cam.gltf',
-      // called when the resource is loaded
-      ( gltf ) => {
+    loader.load('assets/cam.gltf', (gltf) => {
 
-        console.log(gltf);
+        this.mixer = new THREE.AnimationMixer(this.camera);
 
-        // const model = gltf.scene;
-        // this.scene.add( model );
+        const animation = this.mixer.clipAction(gltf.animations[0]);
+        animation.setLoop(THREE.LoopOnce); // проигрываем один раз
+        animation.clampWhenFinished = true; // оставить камеру на последнем кадре
+        animation.play(); // запуск анимации
 
-        // this.camera.up.set( 0, 0, 1 );
-
-        // this.mixer = new THREE.AnimationMixer(this.camera);
-        // this.mixer.clipAction(gltf.animations[0]).play();
-
-        // gltf.animations; // Array<THREE.AnimationClip>
-        // gltf.scene; // THREE.Scene
-        // gltf.scenes; // Array<THREE.Scene>
-        // gltf.cameras; // Array<THREE.Camera>
-        // gltf.asset; // Object
+        console.log(animation);
 
       },
       function ( xhr ) {
