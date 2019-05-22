@@ -12,8 +12,6 @@ class Scene {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.innerHeight, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.BasicShadowMap;
 
     this.ctx = null;
     this.stats = null;
@@ -72,13 +70,14 @@ class Scene {
   }
 
   createMaterial() {
-    return new THREE.PointsMaterial( { size: 1, sizeAttenuation: true, color: '#cccccc' } );
+    return new THREE.PointsMaterial( { size: 1, sizeAttenuation: false, color: '#fff' } );
   }
 
   createGeometry() {
     const points = require('./assets/points.json').values;
     const geometry = new THREE.BufferGeometry();
-    console.log(points);
+
+    // console.log(points);
     geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(points), 3 ) );
     geometry.computeBoundingSphere();
 
